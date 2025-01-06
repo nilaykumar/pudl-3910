@@ -25,6 +25,7 @@ is possible that utilities are using this hype as justification to build out
 We will be using publicly available US government data that has been cleaned and
 made available through PUDL's pipeline. The data dictionary can be found [[https://catalystcoop-pudl.readthedocs.io/en/latest/data_dictionaries/pudl_db.html][here]].
 
+** Library imports
 #+begin_src python :results none
 from datetime import datetime
 import polars as pl
@@ -33,117 +34,83 @@ import matplotlib.pyplot as plt
 
 *** TODO add links or write a script to pull the latest version of the data programmatically
 
-* Read data
+* Load and clean data
 
 ** Demand forecasts
 #+begin_src python
 forecasts = pl.read_parquet("data/core_ferc714__yearly_planning_area_demand_forecast.parquet")
-print(forecasts.head())
+print(forecasts.describe())
 #+end_src
 
 #+RESULTS:
 :results:
-shape: (5, 6)
-┌─────┬─────┬─────┬─────┬─────┬─────┐
-│ res ┆ rep ┆ for ┆ sum ┆ win ┆ net │
-│ pon ┆ ort ┆ eca ┆ mer ┆ ter ┆ _de │
-│ den ┆ _ye ┆ st_ ┆ _pe ┆ _pe ┆ man │
-│ t_i ┆ ar  ┆ yea ┆ ak_ ┆ ak_ ┆ d_f │
-│ d_f ┆ --- ┆ r   ┆ dem ┆ dem ┆ ore │
-│ erc ┆ i32 ┆ --- ┆ and ┆ and ┆ cas │
-│ 714 ┆     ┆ i32 ┆ _fo ┆ _fo ┆ t_m │
-│ --- ┆     ┆     ┆ rec ┆ rec ┆ wh  │
-│ i32 ┆     ┆     ┆ ast ┆ ast ┆ --- │
-│     ┆     ┆     ┆ _mw ┆ _mw ┆ f32 │
-│     ┆     ┆     ┆ --- ┆ --- ┆     │
-│     ┆     ┆     ┆ f32 ┆ f32 ┆     │
-╞═════╪═════╪═════╪═════╪═════╪═════╡
-│ 95  ┆ 200 ┆ 200 ┆ 695 ┆ 476 ┆ 2.7 │
-│     ┆ 6   ┆ 7   ┆ .0  ┆ .0  ┆ 392 │
-│     ┆     ┆     ┆     ┆     ┆ 26e │
-│     ┆     ┆     ┆     ┆     ┆ 6   │
-│ 95  ┆ 200 ┆ 200 ┆ 711 ┆ 487 ┆ 2.7 │
-│     ┆ 6   ┆ 8   ┆ .0  ┆ .0  ┆ 830 │
-│     ┆     ┆     ┆     ┆     ┆ 46e │
-│     ┆     ┆     ┆     ┆     ┆ 6   │
-│ 95  ┆ 200 ┆ 200 ┆ 728 ┆ 499 ┆ 2.8 │
-│     ┆ 6   ┆ 9   ┆ .0  ┆ .0  ┆ 275 │
-│     ┆     ┆     ┆     ┆     ┆ 54e │
-│     ┆     ┆     ┆     ┆     ┆ 6   │
-│ 95  ┆ 200 ┆ 201 ┆ 742 ┆ 509 ┆ 2.8 │
-│     ┆ 6   ┆ 0   ┆ .0  ┆ .0  ┆ 756 │
-│     ┆     ┆     ┆     ┆     ┆ 25e │
-│     ┆     ┆     ┆     ┆     ┆ 6   │
-│ 95  ┆ 200 ┆ 201 ┆ 756 ┆ 519 ┆ 2.9 │
-│     ┆ 6   ┆ 1   ┆ .0  ┆ .0  ┆ 244 │
-│     ┆     ┆     ┆     ┆     ┆ 54e │
-│     ┆     ┆     ┆     ┆     ┆ 6   │
-└─────┴─────┴─────┴─────┴─────┴─────┘
-Cell Timer:
-0:00:00
+shape: (9, 7)
+┌────────────┬─────────────────┬─────────────┬───────────────┬─────────────────┬─────────────────┬─────────────────┐
+│ statistic  ┆ respondent_id_f ┆ report_year ┆ forecast_year ┆ summer_peak_dem ┆ winter_peak_dem ┆ net_demand_fore │
+│ ---        ┆ erc714          ┆ ---         ┆ ---           ┆ and_forecast_mw ┆ and_forecast_mw ┆ cast_mwh        │
+│ str        ┆ ---             ┆ f64         ┆ f64           ┆ ---             ┆ ---             ┆ ---             │
+│            ┆ f64             ┆             ┆               ┆ f64             ┆ f64             ┆ f64             │
+╞════════════╪═════════════════╪═════════════╪═══════════════╪═════════════════╪═════════════════╪═════════════════╡
+│ count      ┆ 20603.0         ┆ 20603.0     ┆ 20603.0       ┆ 20603.0         ┆ 20603.0         ┆ 20603.0         │
+│ null_count ┆ 0.0             ┆ 0.0         ┆ 0.0           ┆ 0.0             ┆ 0.0             ┆ 0.0             │
+│ mean       ┆ 101.901082      ┆ 2013.441926 ┆ 2018.948114   ┆ 29333.082031    ┆ 6637.583496     ┆ 6.5436364e7     │
+│ std        ┆ 54.626225       ┆ 5.276922    ┆ 6.034354      ┆ 974579.0625     ┆ 17195.330078    ┆ 3.87128512e8    │
+│ min        ┆ 1.0             ┆ 2006.0      ┆ 2007.0        ┆ 0.0             ┆ 0.0             ┆ 0.0             │
+│ 25%        ┆ 57.0            ┆ 2009.0      ┆ 2014.0        ┆ 668.0           ┆ 538.0           ┆ 1.529e6         │
+│ 50%        ┆ 106.0           ┆ 2013.0      ┆ 2019.0        ┆ 1813.0          ┆ 1665.0          ┆ 6.083e6         │
+│ 75%        ┆ 147.0           ┆ 2018.0      ┆ 2023.0        ┆ 5032.761719     ┆ 4497.0          ┆ 1.81146e7       │
+│ max        ┆ 217.0           ┆ 2023.0      ┆ 2045.0        ┆ 4.8977424e7     ┆ 163069.0        ┆ 5.9453e9        │
+└────────────┴─────────────────┴─────────────┴───────────────┴─────────────────┴─────────────────┴─────────────────┘
+Cell Timer: 0:00:00
 :end:
 
 ** Realized demand
 The realized demand table ([[https://catalystcoop-pudl.readthedocs.io/en/latest/data_dictionaries/pudl_db.html#out-ferc714-hourly-planning-area-demand][documentation]]) contains hourly reported data.
 #+begin_src python
-real_demand = pl.read_parquet("data/out_ferc714__hourly_planning_area_demand.parquet")
-print(real_demand.head())
+real_demand = pl.read_parquet(
+    "data/out_ferc714__hourly_planning_area_demand.parquet"
+).drop(["respondent_id_ferc714_csv", "respondent_id_ferc714_xbrl"])
+print(real_demand.describe())
 #+end_src
 
 #+RESULTS:
 :results:
-shape: (5, 7)
-┌─────┬─────┬─────┬─────┬─────┬─────┬─────┐
-│ res ┆ res ┆ res ┆ rep ┆ dat ┆ tim ┆ dem │
-│ pon ┆ pon ┆ pon ┆ ort ┆ eti ┆ ezo ┆ and │
-│ den ┆ den ┆ den ┆ _da ┆ me_ ┆ ne  ┆ _mw │
-│ t_i ┆ t_i ┆ t_i ┆ te  ┆ utc ┆ --- ┆ h   │
-│ d_f ┆ d_f ┆ d_f ┆ --- ┆ --- ┆ cat ┆ --- │
-│ erc ┆ erc ┆ erc ┆ dat ┆ dat ┆     ┆ f32 │
-│ 714 ┆ 714 ┆ 714 ┆ e   ┆ eti ┆     ┆     │
-│ --- ┆ _cs ┆ _xb ┆     ┆ me[ ┆     ┆     │
-│ i32 ┆ v   ┆ rl  ┆     ┆ ms] ┆     ┆     │
-│     ┆ --- ┆ --- ┆     ┆     ┆     ┆     │
-│     ┆ i32 ┆ str ┆     ┆     ┆     ┆     │
-╞═════╪═════╪═════╪═════╪═════╪═════╪═════╡
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ 200 ┆ Ame ┆ 741 │
-│     ┆     ┆ 433 ┆ 6-0 ┆ 6-0 ┆ ric ┆ .27 │
-│     ┆     ┆ 9   ┆ 1-0 ┆ 1-0 ┆ a/C ┆ 002 │
-│     ┆     ┆     ┆ 1   ┆ 1   ┆ hic ┆     │
-│     ┆     ┆     ┆     ┆ 06: ┆ ago ┆     │
-│     ┆     ┆     ┆     ┆ 00: ┆     ┆     │
-│     ┆     ┆     ┆     ┆ 00  ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ 200 ┆ Ame ┆ 709 │
-│     ┆     ┆ 433 ┆ 6-0 ┆ 6-0 ┆ ric ┆ .57 │
-│     ┆     ┆ 9   ┆ 1-0 ┆ 1-0 ┆ a/C ┆ 000 │
-│     ┆     ┆     ┆ 1   ┆ 1   ┆ hic ┆ 7   │
-│     ┆     ┆     ┆     ┆ 07: ┆ ago ┆     │
-│     ┆     ┆     ┆     ┆ 00: ┆     ┆     │
-│     ┆     ┆     ┆     ┆ 00  ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ 200 ┆ Ame ┆ 687 │
-│     ┆     ┆ 433 ┆ 6-0 ┆ 6-0 ┆ ric ┆ .78 │
-│     ┆     ┆ 9   ┆ 1-0 ┆ 1-0 ┆ a/C ┆ 997 │
-│     ┆     ┆     ┆ 1   ┆ 1   ┆ hic ┆ 8   │
-│     ┆     ┆     ┆     ┆ 08: ┆ ago ┆     │
-│     ┆     ┆     ┆     ┆ 00: ┆     ┆     │
-│     ┆     ┆     ┆     ┆ 00  ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ 200 ┆ Ame ┆ 669 │
-│     ┆     ┆ 433 ┆ 6-0 ┆ 6-0 ┆ ric ┆ .46 │
-│     ┆     ┆ 9   ┆ 1-0 ┆ 1-0 ┆ a/C ┆ 997 │
-│     ┆     ┆     ┆ 1   ┆ 1   ┆ hic ┆ 1   │
-│     ┆     ┆     ┆     ┆ 09: ┆ ago ┆     │
-│     ┆     ┆     ┆     ┆ 00: ┆     ┆     │
-│     ┆     ┆     ┆     ┆ 00  ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ 200 ┆ Ame ┆ 666 │
-│     ┆     ┆ 433 ┆ 6-0 ┆ 6-0 ┆ ric ┆ .39 │
-│     ┆     ┆ 9   ┆ 1-0 ┆ 1-0 ┆ a/C ┆ 001 │
-│     ┆     ┆     ┆ 1   ┆ 1   ┆ hic ┆ 5   │
-│     ┆     ┆     ┆     ┆ 10: ┆ ago ┆     │
-│     ┆     ┆     ┆     ┆ 00: ┆     ┆     │
-│     ┆     ┆     ┆     ┆ 00  ┆     ┆     │
-└─────┴─────┴─────┴─────┴─────┴─────┴─────┘
-Cell Timer:
-0:00:00
+shape: (9, 6)
+┌────────────┬───────────────────────┬─────────────────┬────────────────────────────┬──────────┬──────────────┐
+│ statistic  ┆ respondent_id_ferc714 ┆ report_date     ┆ datetime_utc               ┆ timezone ┆ demand_mwh   │
+│ ---        ┆ ---                   ┆ ---             ┆ ---                        ┆ ---      ┆ ---          │
+│ str        ┆ f64                   ┆ str             ┆ str                        ┆ str      ┆ f64          │
+╞════════════╪═══════════════════════╪═════════════════╪════════════════════════════╪══════════╪══════════════╡
+│ count      ┆ 1.7968411e7           ┆ 17968411        ┆ 17968411                   ┆ 17968411 ┆ 1.7968411e7  │
+│ null_count ┆ 0.0                   ┆ 0               ┆ 0                          ┆ 0        ┆ 0.0          │
+│ mean       ┆ 101.855286            ┆ 2013-06-21      ┆ 2013-12-21 15:02:02.669000 ┆ null     ┆ 4349.916504  │
+│            ┆                       ┆ 20:38:22.564000 ┆                            ┆          ┆              │
+│ std        ┆ 54.59334              ┆ null            ┆ null                       ┆ null     ┆ 11578.292969 │
+│ min        ┆ 1.0                   ┆ 2006-01-01      ┆ 2006-01-01 05:00:00        ┆ null     ┆ -614.0       │
+│ 25%        ┆ 57.0                  ┆ 2009-01-01      ┆ 2009-03-27 09:00:00        ┆ null     ┆ 353.0        │
+│ 50%        ┆ 106.0                 ┆ 2013-01-01      ┆ 2013-05-28 09:00:00        ┆ null     ┆ 1080.0       │
+│ 75%        ┆ 146.0                 ┆ 2018-01-01      ┆ 2018-06-15 09:00:00        ┆ null     ┆ 2792.0       │
+│ max        ┆ 217.0                 ┆ 2024-01-01      ┆ 2024-01-01 10:00:00        ┆ null     ┆ 158043.0     │
+└────────────┴───────────────────────┴─────────────────┴────────────────────────────┴──────────┴──────────────┘
+Cell Timer: 0:00:00
+:end:
+
+There are a number of respondents that have all 0s as their demand data. There
+are also a number of negative values for demand (perhaps some form of credits).
+#+begin_src python
+print("IDs with all 0s for demand:")
+print(real_demand.filter((pl.col("demand_mwh") == 0).all().over(pl.col("respondent_id_ferc714")))["respondent_id_ferc714"].unique().to_list())
+print("Rows with negative demand:")
+print(real_demand.filter(pl.col("demand_mwh") < 0).shape[0])
+#+end_src
+
+#+RESULTS:
+:results:
+IDs with all 0s for demand:
+[31, 42, 47, 48, 97, 175, 180, 181]
+Rows with negative demand:
+105192
+Cell Timer: 0:00:00
 :end:
 
 ** Summarized demand
@@ -155,142 +122,107 @@ print(summ_demand.head())
 #+RESULTS:
 :results:
 shape: (5, 16)
-┌─────┬─────┬─────┬─────┬───┬─────┬─────┬─────┬─────┐
-│ rep ┆ res ┆ dem ┆ pop ┆ … ┆ bal ┆ bal ┆ uti ┆ uti │
-│ ort ┆ pon ┆ and ┆ ula ┆   ┆ anc ┆ anc ┆ lit ┆ lit │
-│ _da ┆ den ┆ _an ┆ tio ┆   ┆ ing ┆ ing ┆ y_i ┆ y_n │
-│ te  ┆ t_i ┆ nua ┆ n   ┆   ┆ _au ┆ _au ┆ d_e ┆ ame │
-│ --- ┆ d_f ┆ l_m ┆ --- ┆   ┆ tho ┆ tho ┆ ia  ┆ _ei │
-│ dat ┆ erc ┆ wh  ┆ f32 ┆   ┆ rit ┆ rit ┆ --- ┆ a   │
-│ e   ┆ 714 ┆ --- ┆     ┆   ┆ y_c ┆ y_n ┆ i32 ┆ --- │
-│     ┆ --- ┆ f32 ┆     ┆   ┆ ode ┆ ame ┆     ┆ str │
-│     ┆ i32 ┆     ┆     ┆   ┆ _ei ┆ _ei ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ a   ┆ a   ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ --- ┆ --- ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ str ┆ str ┆     ┆     │
-╞═════╪═════╪═════╪═════╪═══╪═════╪═════╪═════╪═════╡
-│ 200 ┆ 1   ┆ 8.8 ┆ 3.1 ┆ … ┆ AEC ┆ Ala ┆ nul ┆ nul │
-│ 6-0 ┆     ┆ 753 ┆ 137 ┆   ┆     ┆ bam ┆ l   ┆ l   │
-│ 1-0 ┆     ┆ 88e ┆ 64e ┆   ┆     ┆ a   ┆     ┆     │
-│ 1   ┆     ┆ 6   ┆ 6   ┆   ┆     ┆ Ele ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ ctr ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ ic  ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ Coo ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ p   ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ Inc ┆     ┆     │
-│ 200 ┆ 2   ┆ 6.4 ┆ 3.9 ┆ … ┆ nul ┆ nul ┆ 195 ┆ Ala │
-│ 6-0 ┆     ┆ 585 ┆ 382 ┆   ┆ l   ┆ l   ┆     ┆ bam │
-│ 1-0 ┆     ┆ 324 ┆ 81e ┆   ┆     ┆     ┆     ┆ a   │
-│ 1   ┆     ┆ e7  ┆ 6   ┆   ┆     ┆     ┆     ┆ Pow │
-│     ┆     ┆     ┆     ┆   ┆     ┆     ┆     ┆ er  │
-│     ┆     ┆     ┆     ┆   ┆     ┆     ┆     ┆ Co  │
-│ 200 ┆ 3   ┆ 411 ┆ nul ┆ … ┆ YAD ┆ Alc ┆ nul ┆ nul │
-│ 6-0 ┆     ┆ 92. ┆ l   ┆   ┆     ┆ oa  ┆ l   ┆ l   │
-│ 1-0 ┆     ┆ 210 ┆     ┆   ┆     ┆ Pow ┆     ┆     │
-│ 1   ┆     ┆ 938 ┆     ┆   ┆     ┆ er  ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ Gen ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ era ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ tin ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ g,  ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ Inc ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ .   ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ -…  ┆     ┆     │
-│ 200 ┆ 4   ┆ 1.2 ┆ 1.0 ┆ … ┆ nul ┆ Min ┆ nul ┆ nul │
-│ 6-0 ┆     ┆ 844 ┆ 087 ┆   ┆ l   ┆ nes ┆ l   ┆ l   │
-│ 1-0 ┆     ┆ 342 ┆ 3e6 ┆   ┆     ┆ ota ┆     ┆     │
-│ 1   ┆     ┆ e7  ┆     ┆   ┆     ┆ Pow ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ er, ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆     ┆ Inc ┆     ┆     │
-│ 200 ┆ 5   ┆ 1.4 ┆ 2.4 ┆ … ┆ nul ┆ nul ┆ 208 ┆ Wis │
-│ 6-0 ┆     ┆ 564 ┆ 735 ┆   ┆ l   ┆ l   ┆ 56  ┆ con │
-│ 1-0 ┆     ┆ 695 ┆ 7e6 ┆   ┆     ┆     ┆     ┆ sin │
-│ 1   ┆     ┆ e7  ┆     ┆   ┆     ┆     ┆     ┆ Pow │
-│     ┆     ┆     ┆     ┆   ┆     ┆     ┆     ┆ er  │
-│     ┆     ┆     ┆     ┆   ┆     ┆     ┆     ┆ &   │
-│     ┆     ┆     ┆     ┆   ┆     ┆     ┆     ┆ Lig │
-│     ┆     ┆     ┆     ┆   ┆     ┆     ┆     ┆ ht  │
-│     ┆     ┆     ┆     ┆   ┆     ┆     ┆     ┆ Co  │
-└─────┴─────┴─────┴─────┴───┴─────┴─────┴─────┴─────┘
-Cell Timer:
-0:00:00
+┌─────────────┬─────────────┬─────────────┬────────────┬───┬─────────────┬─────────────┬─────────────┬─────────────┐
+│ report_date ┆ respondent_ ┆ demand_annu ┆ population ┆ … ┆ balancing_a ┆ balancing_a ┆ utility_id_ ┆ utility_nam │
+│ ---         ┆ id_ferc714  ┆ al_mwh      ┆ ---        ┆   ┆ uthority_co ┆ uthority_na ┆ eia         ┆ e_eia       │
+│ date        ┆ ---         ┆ ---         ┆ f32        ┆   ┆ de_eia      ┆ me_eia      ┆ ---         ┆ ---         │
+│             ┆ i32         ┆ f32         ┆            ┆   ┆ ---         ┆ ---         ┆ i32         ┆ str         │
+│             ┆             ┆             ┆            ┆   ┆ str         ┆ str         ┆             ┆             │
+╞═════════════╪═════════════╪═════════════╪════════════╪═══╪═════════════╪═════════════╪═════════════╪═════════════╡
+│ 2006-01-01  ┆ 1           ┆ 8.875388e6  ┆ 3.113764e6 ┆ … ┆ AEC         ┆ Alabama     ┆ null        ┆ null        │
+│             ┆             ┆             ┆            ┆   ┆             ┆ Electric    ┆             ┆             │
+│             ┆             ┆             ┆            ┆   ┆             ┆ Coop Inc    ┆             ┆             │
+│ 2006-01-01  ┆ 2           ┆ 6.4585324e7 ┆ 3.938281e6 ┆ … ┆ null        ┆ null        ┆ 195         ┆ Alabama     │
+│             ┆             ┆             ┆            ┆   ┆             ┆             ┆             ┆ Power Co    │
+│ 2006-01-01  ┆ 3           ┆ 41192.21093 ┆ null       ┆ … ┆ YAD         ┆ Alcoa Power ┆ null        ┆ null        │
+│             ┆             ┆ 8           ┆            ┆   ┆             ┆ Generating, ┆             ┆             │
+│             ┆             ┆             ┆            ┆   ┆             ┆ Inc. -…     ┆             ┆             │
+│ 2006-01-01  ┆ 4           ┆ 1.2844342e7 ┆ 1.00873e6  ┆ … ┆ null        ┆ Minnesota   ┆ null        ┆ null        │
+│             ┆             ┆             ┆            ┆   ┆             ┆ Power, Inc  ┆             ┆             │
+│ 2006-01-01  ┆ 5           ┆ 1.4564695e7 ┆ 2.47357e6  ┆ … ┆ null        ┆ null        ┆ 20856       ┆ Wisconsin   │
+│             ┆             ┆             ┆            ┆   ┆             ┆             ┆             ┆ Power &     │
+│             ┆             ┆             ┆            ┆   ┆             ┆             ┆             ┆ Light Co    │
+└─────────────┴─────────────┴─────────────┴────────────┴───┴─────────────┴─────────────┴─────────────┴─────────────┘
+Cell Timer: 0:00:00
 :end:
 
 * Realized peak demand
 
 We compute the yearly peak demand by taking a max over the =(respondent, year)=.
 #+begin_src python
-peak_yearly_demand = (
-    real_demand.with_columns(pl.col("datetime_utc").dt.year().alias("year"))
-    .with_columns(
-        pl.col("demand_mwh").max().over(
-            pl.col("respondent_id_ferc714"),
-            pl.col("datetime_utc").dt.year()
-        ).alias("peak_demand_mw")
+peak_yearly_demand = real_demand.with_columns(
+    pl.col("demand_mwh")
+    .max()
+    .over(pl.col("respondent_id_ferc714"), pl.col("datetime_utc").dt.year())
+    .alias("peak_demand_mw")
+)
+print(
+    peak_yearly_demand.filter(
+        pl.col("respondent_id_ferc714") == 127,
+        pl.col("datetime_utc") >= datetime(2024, 1, 1),
     )
 )
-print(peak_yearly_demand.head())
 #+end_src
 
 #+RESULTS:
 :results:
-shape: (5, 9)
-┌─────┬─────┬─────┬─────┬───┬─────┬─────┬─────┬─────┐
-│ res ┆ res ┆ res ┆ rep ┆ … ┆ tim ┆ dem ┆ yea ┆ pea │
-│ pon ┆ pon ┆ pon ┆ ort ┆   ┆ ezo ┆ and ┆ r   ┆ k_d │
-│ den ┆ den ┆ den ┆ _da ┆   ┆ ne  ┆ _mw ┆ --- ┆ ema │
-│ t_i ┆ t_i ┆ t_i ┆ te  ┆   ┆ --- ┆ h   ┆ i32 ┆ nd_ │
-│ d_f ┆ d_f ┆ d_f ┆ --- ┆   ┆ cat ┆ --- ┆     ┆ mw  │
-│ erc ┆ erc ┆ erc ┆ dat ┆   ┆     ┆ f32 ┆     ┆ --- │
-│ 714 ┆ 714 ┆ 714 ┆ e   ┆   ┆     ┆     ┆     ┆ f32 │
-│ --- ┆ _cs ┆ _xb ┆     ┆   ┆     ┆     ┆     ┆     │
-│ i32 ┆ v   ┆ rl  ┆     ┆   ┆     ┆     ┆     ┆     │
-│     ┆ --- ┆ --- ┆     ┆   ┆     ┆     ┆     ┆     │
-│     ┆ i32 ┆ str ┆     ┆   ┆     ┆     ┆     ┆     │
-╞═════╪═════╪═════╪═════╪═══╪═════╪═════╪═════╪═════╡
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ … ┆ Ame ┆ 741 ┆ 200 ┆ 194 │
-│     ┆     ┆ 433 ┆ 6-0 ┆   ┆ ric ┆ .27 ┆ 6   ┆ 0.0 │
-│     ┆     ┆ 9   ┆ 1-0 ┆   ┆ a/C ┆ 002 ┆     ┆     │
-│     ┆     ┆     ┆ 1   ┆   ┆ hic ┆     ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ ago ┆     ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ … ┆ Ame ┆ 709 ┆ 200 ┆ 194 │
-│     ┆     ┆ 433 ┆ 6-0 ┆   ┆ ric ┆ .57 ┆ 6   ┆ 0.0 │
-│     ┆     ┆ 9   ┆ 1-0 ┆   ┆ a/C ┆ 000 ┆     ┆     │
-│     ┆     ┆     ┆ 1   ┆   ┆ hic ┆ 7   ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ ago ┆     ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ … ┆ Ame ┆ 687 ┆ 200 ┆ 194 │
-│     ┆     ┆ 433 ┆ 6-0 ┆   ┆ ric ┆ .78 ┆ 6   ┆ 0.0 │
-│     ┆     ┆ 9   ┆ 1-0 ┆   ┆ a/C ┆ 997 ┆     ┆     │
-│     ┆     ┆     ┆ 1   ┆   ┆ hic ┆ 8   ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ ago ┆     ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ … ┆ Ame ┆ 669 ┆ 200 ┆ 194 │
-│     ┆     ┆ 433 ┆ 6-0 ┆   ┆ ric ┆ .46 ┆ 6   ┆ 0.0 │
-│     ┆     ┆ 9   ┆ 1-0 ┆   ┆ a/C ┆ 997 ┆     ┆     │
-│     ┆     ┆     ┆ 1   ┆   ┆ hic ┆ 1   ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ ago ┆     ┆     ┆     │
-│ 1   ┆ 101 ┆ C00 ┆ 200 ┆ … ┆ Ame ┆ 666 ┆ 200 ┆ 194 │
-│     ┆     ┆ 433 ┆ 6-0 ┆   ┆ ric ┆ .39 ┆ 6   ┆ 0.0 │
-│     ┆     ┆ 9   ┆ 1-0 ┆   ┆ a/C ┆ 001 ┆     ┆     │
-│     ┆     ┆     ┆ 1   ┆   ┆ hic ┆ 5   ┆     ┆     │
-│     ┆     ┆     ┆     ┆   ┆ ago ┆     ┆     ┆     │
-└─────┴─────┴─────┴─────┴───┴─────┴─────┴─────┴─────┘
-Cell Timer:
-0:00:00
+shape: (8, 6)
+┌───────────────────────┬─────────────┬─────────────────────┬─────────────────────┬────────────┬────────────────┐
+│ respondent_id_ferc714 ┆ report_date ┆ datetime_utc        ┆ timezone            ┆ demand_mwh ┆ peak_demand_mw │
+│ ---                   ┆ ---         ┆ ---                 ┆ ---                 ┆ ---        ┆ ---            │
+│ i32                   ┆ date        ┆ datetime[ms]        ┆ cat                 ┆ f32        ┆ f32            │
+╞═══════════════════════╪═════════════╪═════════════════════╪═════════════════════╪════════════╪════════════════╡
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 00:00:00 ┆ America/Los_Angeles ┆ 294.0      ┆ 300.0          │
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 01:00:00 ┆ America/Los_Angeles ┆ 300.0      ┆ 300.0          │
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 02:00:00 ┆ America/Los_Angeles ┆ 298.0      ┆ 300.0          │
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 03:00:00 ┆ America/Los_Angeles ┆ 291.0      ┆ 300.0          │
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 04:00:00 ┆ America/Los_Angeles ┆ 287.0      ┆ 300.0          │
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 05:00:00 ┆ America/Los_Angeles ┆ 280.0      ┆ 300.0          │
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 06:00:00 ┆ America/Los_Angeles ┆ 276.0      ┆ 300.0          │
+│ 127                   ┆ 2023-01-01  ┆ 2024-01-01 07:00:00 ┆ America/Los_Angeles ┆ 270.0      ┆ 300.0          │
+└───────────────────────┴─────────────┴─────────────────────┴─────────────────────┴────────────┴────────────────┘
+Cell Timer: 0:00:00
 :end:
 
-** How often are peaks hit?
+* Reproducing the RMI plot
+
+To analyze the difference between forecasted peak demand and realized peak
+demand, we join the two relevant tables.
 #+begin_src python
-peak2 = (
-    real_demand.with_columns(pl.col("datetime_utc").dt.year().alias("year"))
-    .with_columns(pl.col("demand_mwh").max().over(pl.col("respondent_id_ferc714"), pl.col("year")).alias("peak_demand_mw"))
+df = forecasts.with_columns(
+    peak_demand_forecast_mw=pl.max_horizontal(
+        "summer_peak_demand_forecast_mw", "winter_peak_demand_forecast_mw"
+    )
+).join(
+    peak_yearly_demand.with_columns(real_year=pl.col("datetime_utc").dt.year())
+    .select("respondent_id_ferc714", "real_year", "peak_demand_mw")
+    .unique(),
+    left_on=["respondent_id_ferc714", "forecast_year"],
+    right_on=["respondent_id_ferc714", "real_year"],
+    how="left",
 )
-demand_df = peak2.filter(pl.col("respondent_id_ferc714") == 99, pl.col("year") == 2023).group_by(pl.col("datetime_utc").dt.date()).agg(pl.col("demand_mwh").mean()).sort(by="datetime_utc")
-plt.plot(demand_df.get_column("datetime_utc"), demand_df.get_column("demand_mwh"))
-plt.show()
+df = df.with_columns(
+    lookahead=pl.col("forecast_year") - pl.col("report_year"),
+    delta=pl.col("peak_demand_forecast_mw") - pl.col("peak_demand_mw"),
+).filter(pl.col("delta").is_not_null())
+print(df.tail())
 #+end_src
 
 #+RESULTS:
 :results:
-[[file:plots/eda/plot_20241229_231423_1844081.png]]
-Cell Timer:
-0:00:00
+shape: (5, 10)
+┌───────────────┬─────────────┬──────────────┬──────────────┬───┬──────────────┬──────────────┬───────────┬────────┐
+│ respondent_id ┆ report_year ┆ forecast_yea ┆ summer_peak_ ┆ … ┆ peak_demand_ ┆ peak_demand_ ┆ lookahead ┆ delta  │
+│ _ferc714      ┆ ---         ┆ r            ┆ demand_forec ┆   ┆ forecast_mw  ┆ mw           ┆ ---       ┆ ---    │
+│ ---           ┆ i32         ┆ ---          ┆ ast_mw       ┆   ┆ ---          ┆ ---          ┆ i32       ┆ f32    │
+│ i32           ┆             ┆ i32          ┆ ---          ┆   ┆ f32          ┆ f32          ┆           ┆        │
+│               ┆             ┆              ┆ f32          ┆   ┆              ┆              ┆           ┆        │
+╞═══════════════╪═════════════╪══════════════╪══════════════╪═══╪══════════════╪══════════════╪═══════════╪════════╡
+│ 127           ┆ 2021        ┆ 2022         ┆ 314.0        ┆ … ┆ 412.0        ┆ 517.0        ┆ 1         ┆ -105.0 │
+│ 127           ┆ 2021        ┆ 2023         ┆ 319.0        ┆ … ┆ 418.0        ┆ 442.0        ┆ 2         ┆ -24.0  │
+│ 127           ┆ 2021        ┆ 2024         ┆ 324.0        ┆ … ┆ 425.0        ┆ 300.0        ┆ 3         ┆ 125.0  │
+│ 127           ┆ 2022        ┆ 2023         ┆ 344.0        ┆ … ┆ 463.0        ┆ 442.0        ┆ 1         ┆ 21.0   │
+│ 127           ┆ 2022        ┆ 2024         ┆ 364.0        ┆ … ┆ 495.0        ┆ 300.0        ┆ 2         ┆ 195.0  │
+└───────────────┴─────────────┴──────────────┴──────────────┴───┴──────────────┴──────────────┴───────────┴────────┘
+Cell Timer: 0:00:00
 :end:
