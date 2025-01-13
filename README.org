@@ -7,6 +7,8 @@ repo.
 Alex Engel has a nice "squid" plot visualizing the bias of FERC714
 correspondents towards overestimating future demand. I've followed his provided
 code and reproduced it here to get a better understanding of the data.
+
 [[file:squid_nilay.png]]
+
 See the notebook [[file:squid.org][here]] to see my version of the code (it's very close to being
 identical, other than being written using polars instead of pandas).
