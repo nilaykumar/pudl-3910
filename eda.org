@@ -38,29 +38,30 @@ import matplotlib.pyplot as plt
 
 ** Demand forecasts
 #+begin_src python
-forecasts = pl.read_parquet("data/core_ferc714__yearly_planning_area_demand_forecast.parquet")
+forecasts = pl.read_parquet(
+    "data/core_ferc714__yearly_planning_area_demand_forecast.parquet"
+)
 print(forecasts.describe())
 #+end_src
 
 #+RESULTS:
 :results:
 shape: (9, 7)
-┌────────────┬─────────────────┬─────────────┬───────────────┬─────────────────┬─────────────────┬─────────────────┐
-│ statistic  ┆ respondent_id_f ┆ report_year ┆ forecast_year ┆ summer_peak_dem ┆ winter_peak_dem ┆ net_demand_fore │
-│ ---        ┆ erc714          ┆ ---         ┆ ---           ┆ and_forecast_mw ┆ and_forecast_mw ┆ cast_mwh        │
-│ str        ┆ ---             ┆ f64         ┆ f64           ┆ ---             ┆ ---             ┆ ---             │
-│            ┆ f64             ┆             ┆               ┆ f64             ┆ f64             ┆ f64             │
-╞════════════╪═════════════════╪═════════════╪═══════════════╪═════════════════╪═════════════════╪═════════════════╡
-│ count      ┆ 20603.0         ┆ 20603.0     ┆ 20603.0       ┆ 20603.0         ┆ 20603.0         ┆ 20603.0         │
-│ null_count ┆ 0.0             ┆ 0.0         ┆ 0.0           ┆ 0.0             ┆ 0.0             ┆ 0.0             │
-│ mean       ┆ 101.901082      ┆ 2013.441926 ┆ 2018.948114   ┆ 29333.082031    ┆ 6637.583496     ┆ 6.5436364e7     │
-│ std        ┆ 54.626225       ┆ 5.276922    ┆ 6.034354      ┆ 974579.0625     ┆ 17195.330078    ┆ 3.87128512e8    │
-│ min        ┆ 1.0             ┆ 2006.0      ┆ 2007.0        ┆ 0.0             ┆ 0.0             ┆ 0.0             │
-│ 25%        ┆ 57.0            ┆ 2009.0      ┆ 2014.0        ┆ 668.0           ┆ 538.0           ┆ 1.529e6         │
-│ 50%        ┆ 106.0           ┆ 2013.0      ┆ 2019.0        ┆ 1813.0          ┆ 1665.0          ┆ 6.083e6         │
-│ 75%        ┆ 147.0           ┆ 2018.0      ┆ 2023.0        ┆ 5032.761719     ┆ 4497.0          ┆ 1.81146e7       │
-│ max        ┆ 217.0           ┆ 2023.0      ┆ 2045.0        ┆ 4.8977424e7     ┆ 163069.0        ┆ 5.9453e9        │
-└────────────┴─────────────────┴─────────────┴───────────────┴─────────────────┴─────────────────┴─────────────────┘
+┌────────────┬───────────────────────┬─────────────┬───────────────┬────────────────────────────────┬────────────────────────────────┬─────────────────────────┐
+│ statistic  ┆ respondent_id_ferc714 ┆ report_year ┆ forecast_year ┆ summer_peak_demand_forecast_mw ┆ winter_peak_demand_forecast_mw ┆ net_demand_forecast_mwh │
+│ ---        ┆ ---                   ┆ ---         ┆ ---           ┆ ---                            ┆ ---                            ┆ ---                     │
+│ str        ┆ f64                   ┆ f64         ┆ f64           ┆ f64                            ┆ f64                            ┆ f64                     │
+╞════════════╪═══════════════════════╪═════════════╪═══════════════╪════════════════════════════════╪════════════════════════════════╪═════════════════════════╡
+│ count      ┆ 20603.0               ┆ 20603.0     ┆ 20603.0       ┆ 20603.0                        ┆ 20603.0                        ┆ 20603.0                 │
+│ null_count ┆ 0.0                   ┆ 0.0         ┆ 0.0           ┆ 0.0                            ┆ 0.0                            ┆ 0.0                     │
+│ mean       ┆ 101.901082            ┆ 2013.441926 ┆ 2018.948114   ┆ 29333.082031                   ┆ 6637.583496                    ┆ 6.5436364e7             │
+│ std        ┆ 54.626225             ┆ 5.276922    ┆ 6.034354      ┆ 974579.0625                    ┆ 17195.330078                   ┆ 3.87128512e8            │
+│ min        ┆ 1.0                   ┆ 2006.0      ┆ 2007.0        ┆ 0.0                            ┆ 0.0                            ┆ 0.0                     │
+│ 25%        ┆ 57.0                  ┆ 2009.0      ┆ 2014.0        ┆ 668.0                          ┆ 538.0                          ┆ 1.529e6                 │
+│ 50%        ┆ 106.0                 ┆ 2013.0      ┆ 2019.0        ┆ 1813.0                         ┆ 1665.0                         ┆ 6.083e6                 │
+│ 75%        ┆ 147.0                 ┆ 2018.0      ┆ 2023.0        ┆ 5032.761719                    ┆ 4497.0                         ┆ 1.81146e7               │
+│ max        ┆ 217.0                 ┆ 2023.0      ┆ 2045.0        ┆ 4.8977424e7                    ┆ 163069.0                       ┆ 5.9453e9                │
+└────────────┴───────────────────────┴─────────────┴───────────────┴────────────────────────────────┴────────────────────────────────┴─────────────────────────┘
 Cell Timer: 0:00:00
 :end:
 
@@ -76,22 +77,21 @@ print(real_demand.describe())
 #+RESULTS:
 :results:
 shape: (9, 6)
-┌────────────┬───────────────────────┬─────────────────┬────────────────────────────┬──────────┬──────────────┐
-│ statistic  ┆ respondent_id_ferc714 ┆ report_date     ┆ datetime_utc               ┆ timezone ┆ demand_mwh   │
-│ ---        ┆ ---                   ┆ ---             ┆ ---                        ┆ ---      ┆ ---          │
-│ str        ┆ f64                   ┆ str             ┆ str                        ┆ str      ┆ f64          │
-╞════════════╪═══════════════════════╪═════════════════╪════════════════════════════╪══════════╪══════════════╡
-│ count      ┆ 1.7968411e7           ┆ 17968411        ┆ 17968411                   ┆ 17968411 ┆ 1.7968411e7  │
-│ null_count ┆ 0.0                   ┆ 0               ┆ 0                          ┆ 0        ┆ 0.0          │
-│ mean       ┆ 101.855286            ┆ 2013-06-21      ┆ 2013-12-21 15:02:02.669000 ┆ null     ┆ 4349.916504  │
-│            ┆                       ┆ 20:38:22.564000 ┆                            ┆          ┆              │
-│ std        ┆ 54.59334              ┆ null            ┆ null                       ┆ null     ┆ 11578.292969 │
-│ min        ┆ 1.0                   ┆ 2006-01-01      ┆ 2006-01-01 05:00:00        ┆ null     ┆ -614.0       │
-│ 25%        ┆ 57.0                  ┆ 2009-01-01      ┆ 2009-03-27 09:00:00        ┆ null     ┆ 353.0        │
-│ 50%        ┆ 106.0                 ┆ 2013-01-01      ┆ 2013-05-28 09:00:00        ┆ null     ┆ 1080.0       │
-│ 75%        ┆ 146.0                 ┆ 2018-01-01      ┆ 2018-06-15 09:00:00        ┆ null     ┆ 2792.0       │
-│ max        ┆ 217.0                 ┆ 2024-01-01      ┆ 2024-01-01 10:00:00        ┆ null     ┆ 158043.0     │
-└────────────┴───────────────────────┴─────────────────┴────────────────────────────┴──────────┴──────────────┘
+┌────────────┬───────────────────────┬────────────────────────────┬────────────────────────────┬──────────┬──────────────┐
+│ statistic  ┆ respondent_id_ferc714 ┆ report_date                ┆ datetime_utc               ┆ timezone ┆ demand_mwh   │
+│ ---        ┆ ---                   ┆ ---                        ┆ ---                        ┆ ---      ┆ ---          │
+│ str        ┆ f64                   ┆ str                        ┆ str                        ┆ str      ┆ f64          │
+╞════════════╪═══════════════════════╪════════════════════════════╪════════════════════════════╪══════════╪══════════════╡
+│ count      ┆ 1.7968411e7           ┆ 17968411                   ┆ 17968411                   ┆ 17968411 ┆ 1.7968411e7  │
+│ null_count ┆ 0.0                   ┆ 0                          ┆ 0                          ┆ 0        ┆ 0.0          │
+│ mean       ┆ 101.855286            ┆ 2013-06-21 20:38:22.564000 ┆ 2013-12-21 15:02:02.669000 ┆ null     ┆ 4349.916504  │
+│ std        ┆ 54.59334              ┆ null                       ┆ null                       ┆ null     ┆ 11578.292969 │
+│ min        ┆ 1.0                   ┆ 2006-01-01                 ┆ 2006-01-01 05:00:00        ┆ null     ┆ -614.0       │
+│ 25%        ┆ 57.0                  ┆ 2009-01-01                 ┆ 2009-03-27 09:00:00        ┆ null     ┆ 353.0        │
+│ 50%        ┆ 106.0                 ┆ 2013-01-01                 ┆ 2013-05-28 09:00:00        ┆ null     ┆ 1080.0       │
+│ 75%        ┆ 146.0                 ┆ 2018-01-01                 ┆ 2018-06-15 09:00:00        ┆ null     ┆ 2792.0       │
+│ max        ┆ 217.0                 ┆ 2024-01-01                 ┆ 2024-01-01 10:00:00        ┆ null     ┆ 158043.0     │
+└────────────┴───────────────────────┴────────────────────────────┴────────────────────────────┴──────────┴──────────────┘
 Cell Timer: 0:00:00
 :end:
 
@@ -122,27 +122,17 @@ print(summ_demand.head())
 #+RESULTS:
 :results:
 shape: (5, 16)
-┌─────────────┬─────────────┬─────────────┬────────────┬───┬─────────────┬─────────────┬─────────────┬─────────────┐
-│ report_date ┆ respondent_ ┆ demand_annu ┆ population ┆ … ┆ balancing_a ┆ balancing_a ┆ utility_id_ ┆ utility_nam │
-│ ---         ┆ id_ferc714  ┆ al_mwh      ┆ ---        ┆   ┆ uthority_co ┆ uthority_na ┆ eia         ┆ e_eia       │
-│ date        ┆ ---         ┆ ---         ┆ f32        ┆   ┆ de_eia      ┆ me_eia      ┆ ---         ┆ ---         │
-│             ┆ i32         ┆ f32         ┆            ┆   ┆ ---         ┆ ---         ┆ i32         ┆ str         │
-│             ┆             ┆             ┆            ┆   ┆ str         ┆ str         ┆             ┆             │
-╞═════════════╪═════════════╪═════════════╪════════════╪═══╪═════════════╪═════════════╪═════════════╪═════════════╡
-│ 2006-01-01  ┆ 1           ┆ 8.875388e6  ┆ 3.113764e6 ┆ … ┆ AEC         ┆ Alabama     ┆ null        ┆ null        │
-│             ┆             ┆             ┆            ┆   ┆             ┆ Electric    ┆             ┆             │
-│             ┆             ┆             ┆            ┆   ┆             ┆ Coop Inc    ┆             ┆             │
-│ 2006-01-01  ┆ 2           ┆ 6.4585324e7 ┆ 3.938281e6 ┆ … ┆ null        ┆ null        ┆ 195         ┆ Alabama     │
-│             ┆             ┆             ┆            ┆   ┆             ┆             ┆             ┆ Power Co    │
-│ 2006-01-01  ┆ 3           ┆ 41192.21093 ┆ null       ┆ … ┆ YAD         ┆ Alcoa Power ┆ null        ┆ null        │
-│             ┆             ┆ 8           ┆            ┆   ┆             ┆ Generating, ┆             ┆             │
-│             ┆             ┆             ┆            ┆   ┆             ┆ Inc. -…     ┆             ┆             │
-│ 2006-01-01  ┆ 4           ┆ 1.2844342e7 ┆ 1.00873e6  ┆ … ┆ null        ┆ Minnesota   ┆ null        ┆ null        │
-│             ┆             ┆             ┆            ┆   ┆             ┆ Power, Inc  ┆             ┆             │
-│ 2006-01-01  ┆ 5           ┆ 1.4564695e7 ┆ 2.47357e6  ┆ … ┆ null        ┆ null        ┆ 20856       ┆ Wisconsin   │
-│             ┆             ┆             ┆            ┆   ┆             ┆             ┆             ┆ Power &     │
-│             ┆             ┆             ┆            ┆   ┆             ┆             ┆             ┆ Light Co    │
-└─────────────┴─────────────┴─────────────┴────────────┴───┴─────────────┴─────────────┴─────────────┴─────────────┘
+┌─────────────┬───────────────────────┬───────────────────┬────────────┬───┬──────────────────────────────┬─────────────────────────────────┬────────────────┬────────────────────────────┐
+│ report_date ┆ respondent_id_ferc714 ┆ demand_annual_mwh ┆ population ┆ … ┆ balancing_authority_code_eia ┆ balancing_authority_name_eia    ┆ utility_id_eia ┆ utility_name_eia           │
+│ ---         ┆ ---                   ┆ ---               ┆ ---        ┆   ┆ ---                          ┆ ---                             ┆ ---            ┆ ---                        │
+│ date        ┆ i32                   ┆ f32               ┆ f32        ┆   ┆ str                          ┆ str                             ┆ i32            ┆ str                        │
+╞═════════════╪═══════════════════════╪═══════════════════╪════════════╪═══╪══════════════════════════════╪═════════════════════════════════╪════════════════╪════════════════════════════╡
+│ 2006-01-01  ┆ 1                     ┆ 8.875388e6        ┆ 3.113764e6 ┆ … ┆ AEC                          ┆ Alabama Electric Coop Inc       ┆ null           ┆ null                       │
+│ 2006-01-01  ┆ 2                     ┆ 6.4585324e7       ┆ 3.938281e6 ┆ … ┆ null                         ┆ null                            ┆ 195            ┆ Alabama Power Co           │
+│ 2006-01-01  ┆ 3                     ┆ 41192.210938      ┆ null       ┆ … ┆ YAD                          ┆ Alcoa Power Generating, Inc. -… ┆ null           ┆ null                       │
+│ 2006-01-01  ┆ 4                     ┆ 1.2844342e7       ┆ 1.00873e6  ┆ … ┆ null                         ┆ Minnesota Power, Inc            ┆ null           ┆ null                       │
+│ 2006-01-01  ┆ 5                     ┆ 1.4564695e7       ┆ 2.47357e6  ┆ … ┆ null                         ┆ null                            ┆ 20856          ┆ Wisconsin Power & Light Co │
+└─────────────┴───────────────────────┴───────────────────┴────────────┴───┴──────────────────────────────┴─────────────────────────────────┴────────────────┴────────────────────────────┘
 Cell Timer: 0:00:00
 :end:
 
@@ -201,28 +191,288 @@ df = forecasts.with_columns(
     right_on=["respondent_id_ferc714", "real_year"],
     how="left",
 )
-df = df.with_columns(
-    lookahead=pl.col("forecast_year") - pl.col("report_year"),
-    delta=pl.col("peak_demand_forecast_mw") - pl.col("peak_demand_mw"),
-).filter(pl.col("delta").is_not_null())
+df = (
+    df.with_columns(
+        lookahead=pl.col("forecast_year") - pl.col("report_year"),
+        delta_mw=pl.col("peak_demand_forecast_mw") - pl.col("peak_demand_mw"),
+    )
+    .filter(pl.col("delta_mw").is_not_null())
+    .select(
+        "respondent_id_ferc714",
+        "report_year",
+        "forecast_year",
+        "lookahead",
+        "peak_demand_forecast_mw",
+        "peak_demand_mw",
+        "delta_mw",
+    )
+)
 print(df.tail())
 #+end_src
 
 #+RESULTS:
 :results:
-shape: (5, 10)
-┌───────────────┬─────────────┬──────────────┬──────────────┬───┬──────────────┬──────────────┬───────────┬────────┐
-│ respondent_id ┆ report_year ┆ forecast_yea ┆ summer_peak_ ┆ … ┆ peak_demand_ ┆ peak_demand_ ┆ lookahead ┆ delta  │
-│ _ferc714      ┆ ---         ┆ r            ┆ demand_forec ┆   ┆ forecast_mw  ┆ mw           ┆ ---       ┆ ---    │
-│ ---           ┆ i32         ┆ ---          ┆ ast_mw       ┆   ┆ ---          ┆ ---          ┆ i32       ┆ f32    │
-│ i32           ┆             ┆ i32          ┆ ---          ┆   ┆ f32          ┆ f32          ┆           ┆        │
-│               ┆             ┆              ┆ f32          ┆   ┆              ┆              ┆           ┆        │
-╞═══════════════╪═════════════╪══════════════╪══════════════╪═══╪══════════════╪══════════════╪═══════════╪════════╡
-│ 127           ┆ 2021        ┆ 2022         ┆ 314.0        ┆ … ┆ 412.0        ┆ 517.0        ┆ 1         ┆ -105.0 │
-│ 127           ┆ 2021        ┆ 2023         ┆ 319.0        ┆ … ┆ 418.0        ┆ 442.0        ┆ 2         ┆ -24.0  │
-│ 127           ┆ 2021        ┆ 2024         ┆ 324.0        ┆ … ┆ 425.0        ┆ 300.0        ┆ 3         ┆ 125.0  │
-│ 127           ┆ 2022        ┆ 2023         ┆ 344.0        ┆ … ┆ 463.0        ┆ 442.0        ┆ 1         ┆ 21.0   │
-│ 127           ┆ 2022        ┆ 2024         ┆ 364.0        ┆ … ┆ 495.0        ┆ 300.0        ┆ 2         ┆ 195.0  │
-└───────────────┴─────────────┴──────────────┴──────────────┴───┴──────────────┴──────────────┴───────────┴────────┘
+shape: (5, 7)
+┌───────────────────────┬─────────────┬───────────────┬───────────┬─────────────────────────┬────────────────┬──────────┐
+│ respondent_id_ferc714 ┆ report_year ┆ forecast_year ┆ lookahead ┆ peak_demand_forecast_mw ┆ peak_demand_mw ┆ delta_mw │
+│ ---                   ┆ ---         ┆ ---           ┆ ---       ┆ ---                     ┆ ---            ┆ ---      │
+│ i32                   ┆ i32         ┆ i32           ┆ i32       ┆ f32                     ┆ f32            ┆ f32      │
+╞═══════════════════════╪═════════════╪═══════════════╪═══════════╪═════════════════════════╪════════════════╪══════════╡
+│ 127                   ┆ 2021        ┆ 2022          ┆ 1         ┆ 412.0                   ┆ 517.0          ┆ -105.0   │
+│ 127                   ┆ 2021        ┆ 2023          ┆ 2         ┆ 418.0                   ┆ 442.0          ┆ -24.0    │
+│ 127                   ┆ 2021        ┆ 2024          ┆ 3         ┆ 425.0                   ┆ 300.0          ┆ 125.0    │
+│ 127                   ┆ 2022        ┆ 2023          ┆ 1         ┆ 463.0                   ┆ 442.0          ┆ 21.0     │
+│ 127                   ┆ 2022        ┆ 2024          ┆ 2         ┆ 495.0                   ┆ 300.0          ┆ 195.0    │
+└───────────────────────┴─────────────┴───────────────┴───────────┴─────────────────────────┴────────────────┴──────────┘
+Cell Timer: 0:00:00
+:end:
+
+** %-overforecast
+
+To compute the % over-forecasted we'll need to divide the forecast by the
+realized demand. To this end, let's drop any rows where the realized demand is
+zero (and the forecasted demand is non-zero). There are also a few outliers,
+where the over-forecasted percentage is over 1000%. I'll just drop those for
+now.
+
+#+begin_src python
+df = df.filter(
+    (pl.col("peak_demand_mw") != 0) | (pl.col("peak_demand_forecast_mw") == 0),
+)
+# remember null and NaN are different in polars!
+df = df.with_columns(
+    delta_pct=pl.col("delta_mw").truediv(pl.col("peak_demand_mw")).mul(100).round(1)
+).filter((pl.col("delta_pct") < 1000) | pl.col("delta_pct").is_nan())
+print(df)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (13_690, 8)
+┌───────────────────────┬─────────────┬───────────────┬───────────┬─────────────────────────┬────────────────┬──────────┬────────────┐
+│ respondent_id_ferc714 ┆ report_year ┆ forecast_year ┆ lookahead ┆ peak_demand_forecast_mw ┆ peak_demand_mw ┆ delta_mw ┆ delta_pct  │
+│ ---                   ┆ ---         ┆ ---           ┆ ---       ┆ ---                     ┆ ---            ┆ ---      ┆ ---        │
+│ i32                   ┆ i32         ┆ i32           ┆ i32       ┆ f32                     ┆ f32            ┆ f32      ┆ f32        │
+╞═══════════════════════╪═════════════╪═══════════════╪═══════════╪═════════════════════════╪════════════════╪══════════╪════════════╡
+│ 95                    ┆ 2006        ┆ 2007          ┆ 1         ┆ 695.0                   ┆ 685.0          ┆ 10.0     ┆ 1.5        │
+│ 95                    ┆ 2006        ┆ 2008          ┆ 2         ┆ 711.0                   ┆ 650.0          ┆ 61.0     ┆ 9.4        │
+│ 95                    ┆ 2006        ┆ 2009          ┆ 3         ┆ 728.0                   ┆ 620.0          ┆ 108.0    ┆ 17.4       │
+│ 95                    ┆ 2006        ┆ 2010          ┆ 4         ┆ 742.0                   ┆ 641.0          ┆ 101.0    ┆ 15.8       │
+│ 95                    ┆ 2006        ┆ 2011          ┆ 5         ┆ 756.0                   ┆ 605.0          ┆ 151.0    ┆ 25.0       │
+│ …                     ┆ …           ┆ …             ┆ …         ┆ …                       ┆ …              ┆ …        ┆ …          │
+│ 127                   ┆ 2021        ┆ 2022          ┆ 1         ┆ 412.0                   ┆ 517.0          ┆ -105.0   ┆ -20.299999 │
+│ 127                   ┆ 2021        ┆ 2023          ┆ 2         ┆ 418.0                   ┆ 442.0          ┆ -24.0    ┆ -5.4       │
+│ 127                   ┆ 2021        ┆ 2024          ┆ 3         ┆ 425.0                   ┆ 300.0          ┆ 125.0    ┆ 41.700001  │
+│ 127                   ┆ 2022        ┆ 2023          ┆ 1         ┆ 463.0                   ┆ 442.0          ┆ 21.0     ┆ 4.8        │
+│ 127                   ┆ 2022        ┆ 2024          ┆ 2         ┆ 495.0                   ┆ 300.0          ┆ 195.0    ┆ 65.0       │
+└───────────────────────┴─────────────┴───────────────┴───────────┴─────────────────────────┴────────────────┴──────────┴────────────┘
+Cell Timer: 0:00:00
+:end:
+
+Let's make a quick histogram to check the distribution of the %-overforecast.
+
+#+begin_src python
+plt.figure(figsize=(8, 6))
+plt.hist(
+    df.filter(pl.col("delta_pct").is_not_nan())["delta_pct"],
+    bins=50,
+    alpha=0.7,
+    #color="skyblue",
+    edgecolor="black",
+)
+plt.title("realized vs. forecasted peak yearly demand")
+plt.xlabel("%-overforecast")
+plt.ylabel("Frequency")
+plt.show()
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:plots/eda/plot_20250111_014450_3361589.png]]
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Cell Timer: 0:00:00
+:end:
+
+** 0-year lookahead
+
+One interesting thing to note is that very few rows have forecasts for the same
+year that the forecast was made. In the original RMI plot, all utilities have
+their %-overforecast as 0 for the 0th year out. To keep things consistent it
+might make sense to just drop the data here when it exists and manually set it
+to 0 when plotting, etc.
+
+#+begin_src python
+print(df.filter(pl.col("lookahead") == 0))
+df = df.filter(pl.col("lookahead") != 0)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (20, 8)
+┌───────────────────────┬─────────────┬───────────────┬───────────┬─────────────────────────┬────────────────┬───────────┬────────────┐
+│ respondent_id_ferc714 ┆ report_year ┆ forecast_year ┆ lookahead ┆ peak_demand_forecast_mw ┆ peak_demand_mw ┆ delta_mw  ┆ delta_pct  │
+│ ---                   ┆ ---         ┆ ---           ┆ ---       ┆ ---                     ┆ ---            ┆ ---       ┆ ---        │
+│ i32                   ┆ i32         ┆ i32           ┆ i32       ┆ f32                     ┆ f32            ┆ f32       ┆ f32        │
+╞═══════════════════════╪═════════════╪═══════════════╪═══════════╪═════════════════════════╪════════════════╪═══════════╪════════════╡
+│ 128                   ┆ 2017        ┆ 2017          ┆ 0         ┆ 826.0                   ┆ 802.919983     ┆ 23.080017 ┆ 2.9        │
+│ 55                    ┆ 2021        ┆ 2021          ┆ 0         ┆ 1136.0                  ┆ 1125.0         ┆ 11.0      ┆ 1.0        │
+│ 161                   ┆ 2021        ┆ 2021          ┆ 0         ┆ 1298.0                  ┆ 3474.0         ┆ -2176.0   ┆ -62.599998 │
+│ 133                   ┆ 2021        ┆ 2021          ┆ 0         ┆ 7571.0                  ┆ 7669.0         ┆ -98.0     ┆ -1.3       │
+│ 172                   ┆ 2021        ┆ 2021          ┆ 0         ┆ 904.0                   ┆ 904.736023     ┆ -0.736023 ┆ -0.1       │
+│ …                     ┆ …           ┆ …             ┆ …         ┆ …                       ┆ …              ┆ …         ┆ …          │
+│ 133                   ┆ 2022        ┆ 2022          ┆ 0         ┆ 7620.0                  ┆ 7691.0         ┆ -71.0     ┆ -0.9       │
+│ 133                   ┆ 2023        ┆ 2023          ┆ 0         ┆ 8163.0                  ┆ 8269.0         ┆ -106.0    ┆ -1.3       │
+│ 55                    ┆ 2022        ┆ 2022          ┆ 0         ┆ 1214.0                  ┆ 1211.0         ┆ 3.0       ┆ 0.2        │
+│ 161                   ┆ 2022        ┆ 2022          ┆ 0         ┆ 493.0                   ┆ 4780.0         ┆ -4287.0   ┆ -89.699997 │
+│ 161                   ┆ 2023        ┆ 2023          ┆ 0         ┆ 594.0                   ┆ 4770.0         ┆ -4176.0   ┆ -87.5      │
+└───────────────────────┴─────────────┴───────────────┴───────────┴─────────────────────────┴────────────────┴───────────┴────────────┘
+Cell Timer: 0:00:00
+:end:
+
+Are there particular respondents that are much worse at forecasting?
+#+begin_src python
+print(
+    df.group_by("respondent_id_ferc714")
+    .agg(
+        n_predictions=pl.col("delta_pct").count(),
+        mean_peak_demand_mw=pl.col("peak_demand_mw").mean(),
+        mean_delta_pct=pl.col("delta_pct").mean(),
+        median_delta_pct=pl.col("delta_pct").median(),
+    )
+    .filter(pl.col("median_delta_pct") > 10)
+    .sort(by=pl.col("mean_peak_demand_mw"), descending=True)
+)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (66, 5)
+┌───────────────────────┬───────────────┬─────────────────────┬────────────────┬──────────────────┐
+│ respondent_id_ferc714 ┆ n_predictions ┆ mean_peak_demand_mw ┆ mean_delta_pct ┆ median_delta_pct │
+│ ---                   ┆ ---           ┆ ---                 ┆ ---            ┆ ---              │
+│ i32                   ┆ u32           ┆ f32                 ┆ f32            ┆ f32              │
+╞═══════════════════════╪═══════════════╪═════════════════════╪════════════════╪══════════════════╡
+│ 76                    ┆ 135           ┆ 24536.962891        ┆ 21.789631      ┆ 17.6             │
+│ 94                    ┆ 1             ┆ 23567.0             ┆ 50.0           ┆ 50.0             │
+│ 142                   ┆ 1             ┆ 17597.0             ┆ 98.800003      ┆ 98.800003        │
+│ 40                    ┆ 15            ┆ 10908.287109        ┆ 36.18          ┆ 12.3             │
+│ 214                   ┆ 6             ┆ 10778.666992        ┆ 40.366665      ┆ 41.0             │
+│ …                     ┆ …             ┆ …                   ┆ …              ┆ …                │
+│ 180                   ┆ 1             ┆ 0.0                 ┆ NaN            ┆ NaN              │
+│ 97                    ┆ 1             ┆ 0.0                 ┆ NaN            ┆ NaN              │
+│ 175                   ┆ 1             ┆ 0.0                 ┆ NaN            ┆ NaN              │
+│ 47                    ┆ 1             ┆ 0.0                 ┆ NaN            ┆ NaN              │
+│ 181                   ┆ 1             ┆ 0.0                 ┆ NaN            ┆ NaN              │
+└───────────────────────┴───────────────┴─────────────────────┴────────────────┴──────────────────┘
+Cell Timer: 0:00:00
+:end:
+
+Let's merge in the summarized demand data to get a better sense of who these
+respondents are.
+#+begin_src python
+df_annotated = df.join(
+    summ_demand.select(
+        "report_date",
+        "respondent_id_ferc714",
+        "demand_annual_mwh",
+        "population",
+        "area_km2",
+        "population_density_km2",
+        "respondent_type",
+    ),
+    how="left",
+    left_on=["respondent_id_ferc714", "report_year"],
+    right_on=["respondent_id_ferc714", pl.col("report_date").dt.year()],
+)
+print(df_annotated.columns)
+print(df_annotated)
+#+end_src
+
+#+RESULTS:
+:results:
+['respondent_id_ferc714', 'report_year', 'forecast_year', 'lookahead', 'peak_demand_forecast_mw', 'peak_demand_mw', 'delta_mw', 'delta_pct', 'report_date', 'respondent_id_ferc714_right', 'demand_annual_mwh', 'population', 'area_km2', 'population_density_km2', 'respondent_type']
+shape: (13_670, 15)
+┌───────────────────────┬─────────────┬───────────────┬───────────┬───┬────────────┬──────────────┬────────────────────────┬─────────────────────┐
+│ respondent_id_ferc714 ┆ report_year ┆ forecast_year ┆ lookahead ┆ … ┆ population ┆ area_km2     ┆ population_density_km2 ┆ respondent_type     │
+│ ---                   ┆ ---         ┆ ---           ┆ ---       ┆   ┆ ---        ┆ ---          ┆ ---                    ┆ ---                 │
+│ i32                   ┆ i32         ┆ i32           ┆ i32       ┆   ┆ f32        ┆ f32          ┆ f32                    ┆ cat                 │
+╞═══════════════════════╪═════════════╪═══════════════╪═══════════╪═══╪════════════╪══════════════╪════════════════════════╪═════════════════════╡
+│ 95                    ┆ 2006        ┆ 2007          ┆ 1         ┆ … ┆ 514453.0   ┆ 3922.826172  ┆ 131.143463             ┆ utility             │
+│ 95                    ┆ 2006        ┆ 2008          ┆ 2         ┆ … ┆ 514453.0   ┆ 3922.826172  ┆ 131.143463             ┆ utility             │
+│ 95                    ┆ 2006        ┆ 2009          ┆ 3         ┆ … ┆ 514453.0   ┆ 3922.826172  ┆ 131.143463             ┆ utility             │
+│ 95                    ┆ 2006        ┆ 2010          ┆ 4         ┆ … ┆ 514453.0   ┆ 3922.826172  ┆ 131.143463             ┆ utility             │
+│ 95                    ┆ 2006        ┆ 2011          ┆ 5         ┆ … ┆ 514453.0   ┆ 3922.826172  ┆ 131.143463             ┆ utility             │
+│ …                     ┆ …           ┆ …             ┆ …         ┆ … ┆ …          ┆ …            ┆ …                      ┆ …                   │
+│ 127                   ┆ 2021        ┆ 2022          ┆ 1         ┆ … ┆ 79551.0    ┆ 18553.279297 ┆ 4.287705               ┆ balancing_authority │
+│ 127                   ┆ 2021        ┆ 2023          ┆ 2         ┆ … ┆ 79551.0    ┆ 18553.279297 ┆ 4.287705               ┆ balancing_authority │
+│ 127                   ┆ 2021        ┆ 2024          ┆ 3         ┆ … ┆ 79551.0    ┆ 18553.279297 ┆ 4.287705               ┆ balancing_authority │
+│ 127                   ┆ 2022        ┆ 2023          ┆ 1         ┆ … ┆ 79551.0    ┆ 18553.279297 ┆ 4.287705               ┆ balancing_authority │
+│ 127                   ┆ 2022        ┆ 2024          ┆ 2         ┆ … ┆ 79551.0    ┆ 18553.279297 ┆ 4.287705               ┆ balancing_authority │
+└───────────────────────┴─────────────┴───────────────┴───────────┴───┴────────────┴──────────────┴────────────────────────┴─────────────────────┘
+Cell Timer: 0:00:00
+:end:
+
+#+begin_src python
+plt.scatter(df_annotated["population_density_km2"], df_annotated["delta_pct"], alpha=0.2)
+plt.xlabel("population density (km^2)")
+plt.ylabel("%-overforecast")
+plt.title("realized versus forecasted peak yearly demand")
+plt.xlim(0, 600)
+plt.ylim(-200, 400)
+plt.show()
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:plots/eda/plot_20250111_014459_9988721.png]]
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 Cell Timer: 0:00:00
 :end:

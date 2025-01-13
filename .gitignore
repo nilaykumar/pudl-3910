@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+# Data inputs
+data
+# Temporary plots
+plots

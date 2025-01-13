@@ -1,0 +1,365 @@
+:PROPERTIES:
+:header-args:python: :session py-pudl-3910 :async :results output drawer :tangle
+:END:
+
+#+title: RMI squid plot
+
+In this notebook we study Alex Engel's squid plot, which examines the
+electricity planning peak demand forecasting errors made by FERC714 respondents.
+
+* Load in data
+
+#+begin_src python :results none
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import polars as pl
+import seaborn as sns
+
+sns.set_theme()
+
+data_path = Path("data/")
+respondents = pl.read_parquet(data_path / "core_ferc714__respondent_id.parquet")
+hourly_demand = pl.read_parquet(
+    data_path / "out_ferc714__hourly_planning_area_demand.parquet"
+)
+forecast = pl.read_parquet(
+    data_path / "core_ferc714__yearly_planning_area_demand_forecast.parquet"
+)
+
+first_year = 2006
+last_year = 2023
+load_weight_year = 2015
+#+end_src
+
+* Narrow down data
+
+We start by calculating the peak load for all respondents (for all years).
+
+#+begin_src python
+peak_demand = (
+    hourly_demand.group_by(
+        pl.col("respondent_id_ferc714"),
+        pl.col("datetime_utc").dt.year(),
+        pl.col("report_date").dt.year(),
+        maintain_order=True,
+    )
+    .agg(pl.col("demand_mwh").max().alias("actual"))
+    .rename({"datetime_utc": "year", "report_date": "report_year"})
+    .filter(pl.col("year") == pl.col("report_year"))
+)
+print(peak_demand)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (2_100, 4)
+┌───────────────────────┬──────┬─────────────┬─────────────┐
+│ respondent_id_ferc714 ┆ year ┆ report_year ┆ actual      │
+│ ---                   ┆ ---  ┆ ---         ┆ ---         │
+│ i32                   ┆ i32  ┆ i32         ┆ f32         │
+╞═══════════════════════╪══════╪═════════════╪═════════════╡
+│ 1                     ┆ 2006 ┆ 2006        ┆ 1940.0      │
+│ 1                     ┆ 2007 ┆ 2007        ┆ 1990.880005 │
+│ 1                     ┆ 2008 ┆ 2008        ┆ 2059.469971 │
+│ 1                     ┆ 2009 ┆ 2009        ┆ 2101.629883 │
+│ 1                     ┆ 2010 ┆ 2010        ┆ 2384.97998  │
+│ …                     ┆ …    ┆ …           ┆ …           │
+│ 216                   ┆ 2022 ┆ 2022        ┆ 5342.0      │
+│ 216                   ┆ 2023 ┆ 2023        ┆ 4940.0      │
+│ 217                   ┆ 2021 ┆ 2021        ┆ 207.0       │
+│ 217                   ┆ 2022 ┆ 2022        ┆ 194.0       │
+│ 217                   ┆ 2023 ┆ 2023        ┆ 230.0       │
+└───────────────────────┴──────┴─────────────┴─────────────┘
+Cell Timer: 0:00:00
+:end:
+
+Next we start working with the forecast data.
+#+begin_src python
+named_forecast = (
+    forecast.filter(
+        pl.col("report_year") >= first_year, pl.col("report_year") <= last_year
+    )
+    .with_columns(
+        forecast=pl.max_horizontal(
+            "summer_peak_demand_forecast_mw", "winter_peak_demand_forecast_mw"
+        ),
+        lookahead=pl.col("forecast_year") - pl.col("report_year"),
+    )
+    .rename({"forecast_year": "year"})
+    .select("respondent_id_ferc714", "report_year", "year", "forecast", "lookahead")
+    .join(
+        respondents.select("respondent_id_ferc714", "respondent_name_ferc714"),
+        on="respondent_id_ferc714",
+        how="left",
+        validate="m:1",
+    )
+).select(
+    "respondent_id_ferc714",
+    "respondent_name_ferc714",
+    "report_year",
+    "year",
+    "lookahead",
+    "forecast",
+)
+print(named_forecast)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (20_603, 6)
+┌───────────────────────┬─────────────────────────────────┬─────────────┬──────┬───────────┬──────────┐
+│ respondent_id_ferc714 ┆ respondent_name_ferc714         ┆ report_year ┆ year ┆ lookahead ┆ forecast │
+│ ---                   ┆ ---                             ┆ ---         ┆ ---  ┆ ---       ┆ ---      │
+│ i32                   ┆ str                             ┆ i32         ┆ i32  ┆ i32       ┆ f32      │
+╞═══════════════════════╪═════════════════════════════════╪═════════════╪══════╪═══════════╪══════════╡
+│ 95                    ┆ Modesto Irrigation District     ┆ 2006        ┆ 2007 ┆ 1         ┆ 695.0    │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2006        ┆ 2008 ┆ 2         ┆ 711.0    │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2006        ┆ 2009 ┆ 3         ┆ 728.0    │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2006        ┆ 2010 ┆ 4         ┆ 742.0    │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2006        ┆ 2011 ┆ 5         ┆ 756.0    │
+│ …                     ┆ …                               ┆ …           ┆ …    ┆ …         ┆ …        │
+│ 127                   ┆ Public Utility District No. 1 … ┆ 2022        ┆ 2027 ┆ 5         ┆ 649.0    │
+│ 127                   ┆ Public Utility District No. 1 … ┆ 2022        ┆ 2028 ┆ 6         ┆ 666.0    │
+│ 127                   ┆ Public Utility District No. 1 … ┆ 2022        ┆ 2029 ┆ 7         ┆ 672.0    │
+│ 127                   ┆ Public Utility District No. 1 … ┆ 2022        ┆ 2030 ┆ 8         ┆ 679.0    │
+│ 127                   ┆ Public Utility District No. 1 … ┆ 2022        ┆ 2031 ┆ 9         ┆ 691.0    │
+└───────────────────────┴─────────────────────────────────┴─────────────┴──────┴───────────┴──────────┘
+Cell Timer: 0:00:00
+:end:
+
+* Grow the squid
+
+To create the squid plot we need to compare the forecasted peak demand to the
+realized peak demand.
+#+begin_src python
+squid_all_years = named_forecast.join(
+    peak_demand.select("respondent_id_ferc714", "year", "actual"),
+    on=["respondent_id_ferc714", "year"],
+    how="inner",
+    validate="m:1",
+)
+squid_all_years = squid_all_years.with_columns(
+    error=pl.when((pl.col("actual") != 0) & (pl.col("forecast") != 0))
+    .then((pl.col("forecast") - pl.col("actual")) / pl.col("actual"))
+    .otherwise(None)
+).pivot(
+    "lookahead",
+    index=["respondent_id_ferc714", "respondent_name_ferc714", "year"],
+    values="error",
+)
+
+# build an expression that checks whether all lookaheads are null
+lookaheads_expr = [pl.col(str(i)) for i in range(11)]
+all_nulls_expr = pl.lit(True)
+for expr in lookaheads_expr:
+    all_nulls_expr &= expr.is_null()
+# drop any rows where there's no year-1 forecast
+# and fill the year-0 forecast with 0
+squid_all_years = squid_all_years.filter(
+    ~all_nulls_expr, pl.col("1").is_not_null()
+).with_columns(pl.lit(0).alias("0"))
+print(squid_all_years)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (1_878, 14)
+┌───────────────────────┬─────────────────────────────────┬──────┬───────────┬───┬──────┬──────┬──────┬─────┐
+│ respondent_id_ferc714 ┆ respondent_name_ferc714         ┆ year ┆ 1         ┆ … ┆ 8    ┆ 9    ┆ 10   ┆ 0   │
+│ ---                   ┆ ---                             ┆ ---  ┆ ---       ┆   ┆ ---  ┆ ---  ┆ ---  ┆ --- │
+│ i32                   ┆ str                             ┆ i32  ┆ f32       ┆   ┆ f32  ┆ f32  ┆ f32  ┆ i32 │
+╞═══════════════════════╪═════════════════════════════════╪══════╪═══════════╪═══╪══════╪══════╪══════╪═════╡
+│ 95                    ┆ Modesto Irrigation District     ┆ 2007 ┆ 0.014599  ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2008 ┆ 0.069231  ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2009 ┆ 0.074194  ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2010 ┆ 0.031201  ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 95                    ┆ Modesto Irrigation District     ┆ 2011 ┆ 0.080992  ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ …                     ┆ …                               ┆ …    ┆ …         ┆ … ┆ …    ┆ …    ┆ …    ┆ …   │
+│ 215                   ┆ Duke Energy Florida, LLC        ┆ 2023 ┆ -0.015276 ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 217                   ┆ Western Area Power Administrat… ┆ 2023 ┆ -0.173913 ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 217                   ┆ Western Area Power Administrat… ┆ 2022 ┆ -0.020619 ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 216                   ┆ SC Public Service Authority     ┆ 2022 ┆ -0.030024 ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+│ 216                   ┆ SC Public Service Authority     ┆ 2023 ┆ 0.071117  ┆ … ┆ null ┆ null ┆ null ┆ 0   │
+└───────────────────────┴─────────────────────────────────┴──────┴───────────┴───┴──────┴──────┴──────┴─────┘
+Cell Timer: 0:00:00
+:end:
+
+We still have multiple entries for each utility. We'll compute the mean forecast
+errors for each lookahead --- for example, what's the 1-year lookahead error for
+a given respondent? We'll also drop any rows where we have fewer than half of
+forecast errors?
+#+begin_src python
+squid = squid_all_years.group_by(
+    ["respondent_id_ferc714", "respondent_name_ferc714"]
+).agg([expr.mean() for expr in lookaheads_expr])
+squid = squid.filter(
+    pl.sum_horizontal(*[expr.is_not_nan() for expr in lookaheads_expr]) >= 5
+)
+print(squid)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (127, 13)
+┌──────────────────────┬─────────────────────┬─────┬───────────┬───┬───────────┬───────────┬───────────┬───────────┐
+│ respondent_id_ferc71 ┆ respondent_name_fer ┆ 0   ┆ 1         ┆ … ┆ 7         ┆ 8         ┆ 9         ┆ 10        │
+│ 4                    ┆ c714                ┆ --- ┆ ---       ┆   ┆ ---       ┆ ---       ┆ ---       ┆ ---       │
+│ ---                  ┆ ---                 ┆ f64 ┆ f64       ┆   ┆ f64       ┆ f64       ┆ f64       ┆ f64       │
+│ i32                  ┆ str                 ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+╞══════════════════════╪═════════════════════╪═════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪═══════════╡
+│ 138                  ┆ Sierra Pacific      ┆ 0.0 ┆ -0.004259 ┆ … ┆ -0.032131 ┆ -0.041066 ┆ -0.052276 ┆ -0.053592 │
+│                      ┆ Resources           ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 160                  ┆ Western Area Power  ┆ 0.0 ┆ 0.059494  ┆ … ┆ -0.196185 ┆ -0.476417 ┆ NaN       ┆ NaN       │
+│                      ┆ Admin - Upp…        ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 141                  ┆ South Mississippi   ┆ 0.0 ┆ 0.031161  ┆ … ┆ 0.099713  ┆ NaN       ┆ NaN       ┆ NaN       │
+│                      ┆ Electric Pow…       ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 45                   ┆ Decatur Utilities   ┆ 0.0 ┆ 0.027142  ┆ … ┆ 0.149654  ┆ 0.190897  ┆ 0.221162  ┆ 0.275197  │
+│                      ┆ …                   ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 40                   ┆ Consolidated Edison ┆ 0.0 ┆ 0.071311  ┆ … ┆ NaN       ┆ NaN       ┆ NaN       ┆ NaN       │
+│                      ┆ Co. of NY …         ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ …                    ┆ …                   ┆ …   ┆ …         ┆ … ┆ …         ┆ …         ┆ …         ┆ …         │
+│ 139                  ┆ Dominion Energy     ┆ 0.0 ┆ 0.041458  ┆ … ┆ 0.183625  ┆ 0.197792  ┆ 0.21795   ┆ 0.243005  │
+│                      ┆ South Carolina      ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 17                   ┆ Associated Electric ┆ 0.0 ┆ -0.009915 ┆ … ┆ 0.02492   ┆ 0.025059  ┆ 0.038911  ┆ 0.053975  │
+│                      ┆ Cooperativ…         ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 163                  ┆ Western Area Power  ┆ 0.0 ┆ -0.073068 ┆ … ┆ -0.195417 ┆ -0.225021 ┆ -0.276111 ┆ -0.288693 │
+│                      ┆ Administrat…        ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 154                  ┆ Tri-State G & T     ┆ 0.0 ┆ 0.017387  ┆ … ┆ 0.088562  ┆ 0.09509   ┆ 0.107452  ┆ 0.110452  │
+│                      ┆ Assn., Inc.         ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+│ 64                   ┆ Gainesville         ┆ 0.0 ┆ 0.061669  ┆ … ┆ 0.200813  ┆ 0.219238  ┆ 0.242171  ┆ 0.271872  │
+│                      ┆ Regional Utilities  ┆     ┆           ┆   ┆           ┆           ┆           ┆           │
+└──────────────────────┴─────────────────────┴─────┴───────────┴───┴───────────┴───────────┴───────────┴───────────┘
+Cell Timer: 0:00:00
+:end:
+
+Let's drop some outliers, and then take a look at the distribution of errors by
+lookahead-year.
+#+begin_src python
+squid = squid.filter(pl.col("1").abs() <= 0.3, pl.col("9").abs() <= 1.0)
+squid_unpivot = squid.unpivot(
+    [str(i) for i in range(11)],
+    index=["respondent_id_ferc714", "respondent_name_ferc714"],
+).rename({"value": "error", "variable": "years_ahead"})
+sns.catplot(data=squid_unpivot, x="years_ahead", y="error", kind="box")
+plt.title("Peak demand forecasting errors")
+plt.tight_layout()
+plt.show()
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:plots/squid/plot_20250112_235349_755784.png]]
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Cell Timer: 0:00:00
+:end:
+
+Finally, we'll compute the weighted average. 
+#+begin_src python
+for_avg = squid.join(
+    peak_demand.filter(pl.col("year") == load_weight_year)
+    .select(pl.col("respondent_id_ferc714"), pl.col("actual"))
+    .rename({"actual": "load"}),
+    on="respondent_id_ferc714",
+    how="inner",
+    validate="1:1",
+)
+# TODO figure out if we should simply be excluded nans etc?
+squid_avg = for_avg.fill_nan(0).select(
+    *[expr.dot(pl.col("load")) / pl.col("load").sum() for expr in lookaheads_expr]
+)
+print(squid_avg)
+#+end_src
+
+#+RESULTS:
+:results:
+shape: (1, 11)
+┌─────┬──────────┬──────────┬──────────┬───┬──────────┬──────────┬──────────┬──────────┐
+│ 0   ┆ 1        ┆ 2        ┆ 3        ┆ … ┆ 7        ┆ 8        ┆ 9        ┆ 10       │
+│ --- ┆ ---      ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---      ┆ ---      ┆ ---      │
+│ f64 ┆ f64      ┆ f64      ┆ f64      ┆   ┆ f64      ┆ f64      ┆ f64      ┆ f64      │
+╞═════╪══════════╪══════════╪══════════╪═══╪══════════╪══════════╪══════════╪══════════╡
+│ 0.0 ┆ 0.061837 ┆ 0.068872 ┆ 0.078115 ┆ … ┆ 0.121973 ┆ 0.137537 ┆ 0.156175 ┆ 0.187045 │
+└─────┴──────────┴──────────┴──────────┴───┴──────────┴──────────┴──────────┴──────────┘
+Cell Timer: 0:00:00
+:end:
+
+Now we can get to the plotting.
+#+begin_src python
+fig, ax = plt.subplots()
+# plot each respondent's average forecast errors
+for id in squid_unpivot["respondent_id_ferc714"].unique():
+    df = squid_unpivot.filter(pl.col("respondent_id_ferc714") == id)
+    ax.plot(df["years_ahead"], 100 * df["error"], alpha=0.2, color="tab:blue")
+# plot weighted average
+weighted_avg = squid_avg.unpivot(
+    [str(i) for i in range(11)],
+).rename({"value": "error", "variable": "years_ahead"})
+ax.plot(
+    weighted_avg["years_ahead"],
+    100 * weighted_avg["error"],
+    color="tab:orange",
+    linewidth=3,
+)
+for x, y in zip(range(1, 11), 100 * weighted_avg["error"][1:]):
+    ax.text(x, y + 5, f"{y:0.1f}%", fontsize=8)
+# horizontal line at 0 as a reference point
+plt.axhline(y=0, color="gray", linestyle="dashed")
+plt.xlabel("Forecast lookahead (years)")
+plt.ylabel("Forecast error %")
+plt.title(
+    f"Electricity planning area peak demand forecast error\nvs. realized peak demand, {first_year} - {last_year} [%]"
+)
+plt.show()
+plt.savefig("squid_nilay.png")
+#+end_src
+
+#+RESULTS:
+:results:
+[[file:plots/squid/plot_20250113_003943_2882247.png]]
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Cell Timer: 0:00:00
+:end:
